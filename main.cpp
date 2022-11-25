@@ -20,18 +20,39 @@ void swap(int *a, int *b)
 
 void line(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color)
 {
-    if (x0 > x1)
-        swap(&x0, &x1);
-
-    float slope = (float)(y1 - y0) / (float)(x1 - x0);
-    if (slope > 1)
+    if (x0 == x1)
     {
-        float invslope = 1.0 / slope;
         int y_start = min(y0, y1);
         int y_end = max(y0, y1);
         for (int y = y_start; y <= y_end; y++)
         {
-            int x = round(invslope * (y - y_start) + x0);
+            image.set(x0, y, color);
+        }
+        return;
+    }
+
+    if (x0 > x1)
+    {
+        swap(&x0, &x1);
+        swap(&y0, &y1);
+    }
+
+    float slope = (float)(y1 - y0) / (float)(x1 - x0);
+    if (slope > 1.0)
+    {
+        float invslope = 1.0 / slope;
+        for (int y = y0; y <= y1; y++)
+        {
+            int x = round(invslope * (y - y0) + x0);
+            image.set(x, y, color);
+        }
+    }
+    else if (slope < -1.0)
+    {
+        float invslope = 1.0 / slope;
+        for (int y = y0; y >= y1; y--)
+        {
+            int x = round(invslope * (y - y0) + x0);
             image.set(x, y, color);
         }
     }
@@ -48,8 +69,6 @@ void line(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color)
 
 void line(Vec3 v0, Vec3 v1, TGAImage *image, TGAColor color)
 {
-    if (v0.z > 0 || v1.z > 0)
-        return;
     int x0 = (v0.x + 1.0) * image->get_width()/2.0;
     int y0 = (v0.y + 1.0) * image->get_height()/2.0;
     int x1 = (v1.x + 1.0) * image->get_width()/2.0;
