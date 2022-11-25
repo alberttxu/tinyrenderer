@@ -1,23 +1,17 @@
-SYSCONF_LINK = g++
-CPPFLAGS     = -g
+CC = g++
+CPPFLAGS     = -std=c++11 -O1 -Wall -Wextra -fsanitize=address
 LDFLAGS      =
 LIBS         = -lm
 
-DESTDIR = ./
-TARGET  = main
+TARGETS = main
 
-OBJECTS := $(patsubst %.cpp,%.o,$(wildcard *.cpp))
+all: $(TARGETS)
 
-all: $(DESTDIR)$(TARGET)
-
-$(DESTDIR)$(TARGET): $(OBJECTS)
-	$(SYSCONF_LINK) -Wall $(LDFLAGS) -o $(DESTDIR)$(TARGET) $(OBJECTS) $(LIBS)
-
-$(OBJECTS): %.o: %.cpp
-	$(SYSCONF_LINK) -Wall $(CPPFLAGS) -c $(CFLAGS) $< -o $@
+main:
+	$(CC) $(CPPFLAGS) $(LDFLAGS) -o $@ main.cpp tgaimage.cpp
 
 clean:
-	-rm -f $(OBJECTS)
-	-rm -f $(TARGET)
-	-rm -f *.tga
+	rm -f $(TARGETS)
+	rm -f *.tga
+	rm -f *.o
 

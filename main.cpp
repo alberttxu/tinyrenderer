@@ -2,6 +2,8 @@
 #include "tgaimage.h"
 #include "debug_macros.h"
 
+#include "objreader.cpp"
+
 const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red   = TGAColor(255, 0,   0,   255);
 
@@ -44,12 +46,48 @@ void line(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color)
 }
 
 
-int main(int argc, char** argv) {
-	TGAImage image(100, 100, TGAImage::RGB);
+void line(Vec3 v0, Vec3 v1, TGAImage *image, TGAColor color)
+{
+    if (v0.z > 0 || v1.z > 0)
+        return;
+    int x0 = (v0.x + 1.0) * image->get_width()/2.0;
+    int y0 = (v0.y + 1.0) * image->get_height()/2.0;
+    int x1 = (v1.x + 1.0) * image->get_width()/2.0;
+    int y1 = (v1.y + 1.0) * image->get_height()/2.0;
+    line(x0, y0, x1, y1, *image, color);
+}
 
-    line(13, 20, 80, 40, image, white);
-    line(20, 13, 40, 80, image, red);
-    line(80, 40, 13, 20, image, red);
+
+void draw_mesh(Mesh *mesh, TGAImage *image)
+{
+    for (int fi = 0; fi < mesh->num_faces; fi++)
+    {
+        int v0i = mesh->faces[fi].vertidx[0];
+        int v1i = mesh->faces[fi].vertidx[1];
+        int v2i = mesh->faces[fi].vertidx[2];
+        Vec3 v0 = mesh->vertices[v0i];
+        Vec3 v1 = mesh->vertices[v1i];
+        Vec3 v2 = mesh->vertices[v2i];
+        line(v0, v1, image, white);
+        line(v1, v2, image, white);
+        line(v2, v0, image, white);
+    }
+}
+
+
+int main(int argc, char** argv) {
+	TGAImage image(1000, 1000, TGAImage::RGB);
+
+    // 1st exercise
+    //line(13, 20, 80, 40, image, white);
+    //line(20, 13, 40, 80, image, red);
+    //line(80, 40, 13, 20, image, red);
+
+    Mesh mesh;
+    if (load_obj("assets/african_head.obj", &mesh) < 0)
+        return 1;
+
+    draw_mesh(&mesh, &image);
 
 	image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
 	image.write_tga_file("output.tga");
