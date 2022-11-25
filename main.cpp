@@ -1,7 +1,6 @@
 #include <math.h>
 #include "tgaimage.h"
 #include "debug_macros.h"
-
 #include "objreader.cpp"
 
 const TGAColor white = TGAColor(255, 255, 255, 255);
@@ -9,6 +8,7 @@ const TGAColor red   = TGAColor(255, 0,   0,   255);
 
 #define min(a,b) (((a)<(b))?(a):(b))
 #define max(a,b) (((a)>(b))?(a):(b))
+
 
 void swap(int *a, int *b)
 {
@@ -97,16 +97,18 @@ void draw_mesh(Mesh *mesh, TGAImage *image)
 int main(int argc, char** argv) {
 	TGAImage image(1000, 1000, TGAImage::RGB);
 
-    // 1st exercise
-    //line(13, 20, 80, 40, image, white);
-    //line(20, 13, 40, 80, image, red);
-    //line(80, 40, 13, 20, image, red);
+    /* 1st exercise
+    line(13, 20, 80, 40, image, white);
+    line(20, 13, 40, 80, image, red);
+    line(80, 40, 13, 20, image, red);
+    */
 
+    /* 2nd exercise
     Mesh mesh;
     if (load_obj("assets/african_head.obj", &mesh) < 0)
         return 1;
-
     draw_mesh(&mesh, &image);
+    */
 
 	image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
 	image.write_tga_file("output.tga");
