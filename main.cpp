@@ -4,6 +4,7 @@
 #include "tgaimage.h"
 #include "debug_macros.h"
 #include "objreader.cpp"
+#include "geometry.h"
 
 const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red   = TGAColor(255, 0,   0,   255);
@@ -189,6 +190,43 @@ void triangle(Vec2i v0, Vec2i v1, Vec2i v2, TGAImage *image, TGAColor color)
 }
 
 
+void draw_mesh_fill(Mesh *mesh, TGAImage *image)
+{
+    Vec3 light_direction = {0, 0, -1};
+    normalize(&light_direction);
+
+    for (int fi = 0; fi < mesh->num_faces; fi++)
+    {
+        int v0i = mesh->faces[fi].vertidx[0];
+        int v1i = mesh->faces[fi].vertidx[1];
+        int v2i = mesh->faces[fi].vertidx[2];
+        Vec3 v0 = mesh->vertices[v0i];
+        Vec3 v1 = mesh->vertices[v1i];
+        Vec3 v2 = mesh->vertices[v2i];
+
+        Vec3 e0 = v1 - v0;
+        Vec3 e1 = v1 - v2;
+        Vec3 n = crossproduct(&e0, &e1);
+        normalize(&n);
+        int brightness = dot(&n, &light_direction) * 255;
+        if (brightness <= 0)
+            continue;
+        const TGAColor shade = TGAColor(brightness, brightness, brightness, 255);
+
+        int u0x = (v0.x + 1.0) * image->get_width()/2.0;
+        int u0y = (v0.y + 1.0) * image->get_height()/2.0;
+        int u1x = (v1.x + 1.0) * image->get_width()/2.0;
+        int u1y = (v1.y + 1.0) * image->get_height()/2.0;
+        int u2x = (v2.x + 1.0) * image->get_width()/2.0;
+        int u2y = (v2.y + 1.0) * image->get_height()/2.0;
+        Vec2i u0 = {u0x, u0y};
+        Vec2i u1 = {u1x, u1y};
+        Vec2i u2 = {u2x, u2y};
+        triangle(u0, u1, u2, image, shade);
+    }
+}
+
+
 int lesson1()
 {
     /*
@@ -209,8 +247,9 @@ int lesson1()
 	return 0;
 }
 
-void lesson2()
+int lesson2()
 {
+    /*
 	TGAImage image(200, 200, TGAImage::RGB);
     Vec2i t0[3] = {Vec2i(10, 70),   Vec2i(50, 160),  Vec2i(70, 80)};
     Vec2i t1[3] = {Vec2i(180, 50),  Vec2i(150, 1),   Vec2i(70, 180)};
@@ -218,15 +257,23 @@ void lesson2()
     triangle(t0[0], t0[1], t0[2], &image, red);
     triangle(t1[0], t1[1], t1[2], &image, white);
     triangle(t2[0], t2[1], t2[2], &image, green);
+    */
+
+	TGAImage image(1000, 1000, TGAImage::RGB);
+    Mesh mesh;
+    if (load_obj("assets/african_head.obj", &mesh) < 0)
+        return -1;
+    draw_mesh_fill(&mesh, &image);
 
 	image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
 	image.write_tga_file("output.tga");
+    return 0;
 }
 
 int main(int argc, char** argv)
 {
     //assert(lesson1() == 0);
-    lesson2();
+    assert(lesson2() == 0);
 
     return 0;
 }
