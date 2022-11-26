@@ -1,5 +1,5 @@
 CC = g++
-CPPFLAGS     = -std=c++11 -O1 -Wall -Wextra -fsanitize=address
+CPPFLAGS     = -std=c++20 -O1 -Wall -Wextra -fsanitize=address
 LDFLAGS      =
 LIBS         = -lm
 

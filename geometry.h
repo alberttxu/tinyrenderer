@@ -1,5 +1,17 @@
 #pragma once
 
+struct Vec2i
+{
+    int x;
+    int y;
+    Vec2i() {}
+    Vec2i(int a, int b)
+    {
+        x = a;
+        y = b;
+    }
+};
+
 struct Vec3
 {
     float x;
