@@ -2,7 +2,7 @@ module Geometry
 
 export Vec2, Vec3, Mesh
 
-struct Vec2{T} <: AbstractVector{Real}
+struct Vec2{T<:Real} <: AbstractVector{T}
     x::T
     y::T
 end
@@ -19,7 +19,13 @@ function Base.getindex(v::Vec2, i::Int)
     end
 end
 
-struct Vec3{T} <: AbstractVector{Real}
+function Vec2(v::T) where T <: AbstractVector{<:Real}
+    @assert length(v) == 2
+    return Vec2(v[1], v[2])
+end
+
+
+struct Vec3{T<:Real} <: AbstractVector{T}
     x::T
     y::T
     z::T
@@ -37,6 +43,11 @@ function Base.getindex(v::Vec3, i::Int)
     else
         throw(DomainError(i, "argument must be either 1, 2, or 3"))
     end
+end
+
+function Vec3(v::T) where T <: AbstractVector{<:Real}
+    @assert length(v) == 3
+    return Vec2(v[1], v[2], v[3])
 end
 
 

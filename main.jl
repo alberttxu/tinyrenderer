@@ -1,40 +1,8 @@
-include("geometry.jl")
-#include("objreader.jl")
+# local packages (in ./src)
+using TinyRenderer
 
+# 3rd party
 using Images
-using .Geometry
-
-red = RGB(1,0,0)
-green = RGB(0,1,0)
-blue = RGB(0,0,1)
-white = RGB(1,1,1)
-
-
-function line(x0::Int, y0::Int, x1::Int, y1::Int, img, color::RGB)
-    if x0 == x1
-        for y in minmax(y0, y1)
-            img[y,x0] = color
-        end
-        return
-    end
-
-    if x0 > x1
-        line(x1, y1, x0, y0, img, color)
-        return
-    end
-
-    slope = (y1 - y0) / (x1 - x0)
-
-    if abs(slope) > 1
-        line(y0, x0, y1, x1, img', color)
-        return
-    end
-
-    for x in x0:x1
-        y = round(Int, slope * (x-x0) + y0)
-        img[y,x] = color
-    end
-end
 
 
 function test1()
@@ -53,15 +21,41 @@ function test1()
 end
 
 
+function ortho2d(v::Vec3, img) :: Vec2{Int}
+    scale = 0.85
+    height, width = size(img)
+    return Vec2(@. round(Int, ((scale * v[1:2]) + 1) * (width,height) / 2))
+end
+
 function test2()
+    width = 1000
+    height = 1000
+    img = zeros(RGB, height, width)
+
     objfile = "assets/african_head.obj"
-    #load_obj(objfile)
+    mesh = load_obj(objfile)
+    for face in mesh.faces
+        v1 = mesh.vertices[face[1]]
+        v2 = mesh.vertices[face[2]]
+        v3 = mesh.vertices[face[3]]
+        corner1 = ortho2d(v1, img)
+        corner2 = ortho2d(v2, img)
+        corner3 = ortho2d(v3, img)
+        line(corner1, corner2, img, white)
+        line(corner2, corner3, img, white)
+        line(corner3, corner1, img, white)
+    end
+
+    reverse!(img, dims=1)
+    save("output.png", img)
+    return
 end
 
 
 function main()
-    test1()
-    #test2()
+    #test1()
+    test2()
+    return
 end
 
 main()

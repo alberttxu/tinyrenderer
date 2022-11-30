@@ -1,0 +1,7 @@
+name = "TinyRenderer"
+uuid = "9d0a0c61-0442-421f-b38f-e259f835e831"
+authors = ["Albert Xu <albert.t.xu@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+Images = "916415d5-f1e6-5110-898d-aaa5f9f070e0"

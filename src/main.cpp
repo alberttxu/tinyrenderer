@@ -229,18 +229,18 @@ void draw_mesh_fill(Mesh *mesh, TGAImage *image)
 
 int lesson1()
 {
-    /*
 	TGAImage image(100, 100, TGAImage::RGB);
-    line(13, 20, 80, 40, image, white);
-    line(20, 13, 40, 80, image, red);
-    line(80, 40, 13, 20, image, red);
-    */
+    line(13, 20, 80, 40, &image, white);
+    line(20, 13, 40, 80, &image, red);
+    line(80, 40, 13, 20, &image, red);
 
+    /*
 	TGAImage image(1000, 1000, TGAImage::RGB);
     Mesh mesh;
     if (load_obj("assets/african_head.obj", &mesh) < 0)
         return -1;
     draw_mesh(&mesh, &image);
+    */
 
 	image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
 	image.write_tga_file("output.tga");
@@ -272,8 +272,8 @@ int lesson2()
 
 int main(int argc, char** argv)
 {
-    //assert(lesson1() == 0);
-    assert(lesson2() == 0);
+    assert(lesson1() == 0);
+    //assert(lesson2() == 0);
 
     return 0;
 }
