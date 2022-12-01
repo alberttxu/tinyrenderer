@@ -51,10 +51,23 @@ function test2()
     return
 end
 
+function test3()
+    width = 200
+    height = 200
+    img = zeros(RGB, height, width)
+
+    t0 = Triangle2D(Vec2(180,50), Vec2(150,1), Vec2(70,180))
+    triangle(t0, img, white)
+
+    reverse!(img, dims=1)
+    save("output.png", img)
+    return
+end
 
 function main()
     #test1()
-    test2()
+    #test2()
+    test3()
     return
 end
 

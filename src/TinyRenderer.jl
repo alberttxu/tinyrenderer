@@ -1,9 +1,9 @@
 module TinyRenderer
 
 export red, green, blue, white
-export line
+export line, triangle
 export load_obj
-export Vec2, Vec3, Mesh
+export Vec2, Vec3, Mesh, Triangle2D
 
 include("geometry.jl")
 using .Geometry
@@ -49,6 +49,57 @@ end
 function line(v1::Vec2{Int}, v2::Vec2{Int},
              img::M, color::RGB) where M <: AbstractMatrix{RGB}
     line(v1.x, v1.y, v2.x, v2.y, img, color)
+end
+
+
+#= works but could be better
+function isInsideTriangle(tri::Triangle2D, query::Vec2{Int}) :: Bool
+    v1, v2, v3 = tri.v1, tri.v2, tri.v3
+    basis1 = [v2-v1 v3-v1]
+    solution1 = basis1 \ (query - v1)
+    if any(component -> component < 0, solution1)
+        return false
+    end
+    basis2 = [v1-v2 v3-v2]
+    solution2 = basis2 \ (query - v2)
+    if any(component -> component < 0, solution2)
+        return false
+    end
+    return true
+end
+=#
+
+# convex combination, aka barycentric coordinates
+function isInsideTriangle(v1::Vec2{Int}, v2::Vec2{Int}, v3::Vec2{Int}, query::Vec2{Int}) :: Bool
+    A = [v1 v2 v3;
+         1  1  1]
+    b = [query; 1]
+    solution = A \ b
+    return all(el -> el > 0, solution)
+end
+
+function isInsideTriangle(tri::Triangle2D, query::Vec2{Int}) :: Bool
+    return isInsideTriangle(tri.v1, tri.v2, tri.v3, query)
+end
+
+function triangle(v1::Vec2{Int}, v2::Vec2{Int}, v3::Vec2{Int},
+        img::M, color::RGB) where M <: AbstractMatrix{RGB}
+    # bounding box bottom-left and upper-right corners
+    xmin, ymin = min.(v1, v2, v3)
+    xmax, ymax = max.(v1, v2, v3)
+
+    for x in xmin:xmax
+        for y in ymin:ymax
+            if isInsideTriangle(v1, v2, v3, Vec2(x,y))
+                img[y,x] = color
+            end
+        end
+    end
+
+end
+
+function triangle(tri::Triangle2D, img::M, color::RGB) where M <: AbstractMatrix{RGB}
+    triangle(tri.v1, tri.v2, tri.v3, img, color)
 end
 
 end # module TinyRenderer

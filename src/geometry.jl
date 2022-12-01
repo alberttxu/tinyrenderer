@@ -1,6 +1,6 @@
 module Geometry
 
-export Vec2, Vec3, Mesh
+export Vec2, Vec3, Mesh, Triangle2D
 
 struct Vec2{T<:Real} <: AbstractVector{T}
     x::T
@@ -54,6 +54,25 @@ end
 struct Mesh
     vertices::Vector{Vec3{Float64}}
     faces::Vector{Vec3{Int}}
+end
+
+
+struct Triangle2D
+    v1::Vec2{Int}
+    v2::Vec2{Int}
+    v3::Vec2{Int}
+end
+
+function Base.getindex(tri::Triangle2D, i::Int)
+    if i == 1
+        return tri.v1
+    elseif i == 2
+        return tri.v2
+    elseif i == 3
+        return tri.v3
+    else
+        throw(DomainError(i, "argument must be either 1, 2, or 3"))
+    end
 end
 
 end # module Geometry
