@@ -1,5 +1,6 @@
 # stdlib imports
 #using Profile
+using LinearAlgebra
 
 # local packages (in ./src)
 using TinyRenderer
@@ -57,7 +58,7 @@ end
 
 
 function draw(mesh, img)
-    color = RGB(1, 1, 1)
+    light_direction = [0, 0, -1]
     for (i, face) in enumerate(mesh.faces)
         v1 = mesh.vertices[face[1]]
         v2 = mesh.vertices[face[2]]
@@ -65,6 +66,13 @@ function draw(mesh, img)
         corner1 = ortho2d(v1, img)
         corner2 = ortho2d(v2, img)
         corner3 = ortho2d(v3, img)
+        normal = cross(v1 - v2, v3 - v1)
+        normal ./= norm(normal)
+        intensity = dot(normal, light_direction)
+        if intensity <= 0
+            continue
+        end
+        color = RGB{N0f8}(intensity, intensity, intensity)
         triangle(corner1, corner2, corner3, img, color)
     end
 end
