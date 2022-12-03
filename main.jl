@@ -28,7 +28,7 @@ end
 function ortho2d(v::Vec3, img) :: Vec2{Int}
     scale = 0.85
     height, width = size(img)
-    return Vec2(@. round(Int, ((scale * v[1:2]) + 1) * (width,height) / 2))
+    return Vec2(@. round(Int, ((scale * @view v[1:2]) + 1) * (width,height) / 2))
 end
 
 function test2()
@@ -57,6 +57,7 @@ end
 
 
 function draw(mesh, img)
+    color = RGB(1, 1, 1)
     for (i, face) in enumerate(mesh.faces)
         v1 = mesh.vertices[face[1]]
         v2 = mesh.vertices[face[2]]
@@ -64,23 +65,23 @@ function draw(mesh, img)
         corner1 = ortho2d(v1, img)
         corner2 = ortho2d(v2, img)
         corner3 = ortho2d(v3, img)
-        triangle(corner1, corner2, corner3, img, white)
+        triangle(corner1, corner2, corner3, img, color)
     end
 end
 
 
-function test3()
-    #=
+function test_triangle()
     width = 200
     height = 200
-    img = zeros(RGB, height, width)
-    t0 = Triangle2D(Vec2(180,50), Vec2(150,1), Vec2(70,180))
-    @time triangle(t0, img, white)
-    =#
+    img = zeros(RGB{N0f8}, height, width)
+    #println(typeof(img))
+    triangle(Vec2(180,50), Vec2(150,1), Vec2(70,180), img, white)
+end
 
+function test3()
     width = 1000
     height = 1000
-    img = zeros(RGB, height, width)
+    img = zeros(RGB{N0f8}, height, width)
     objfile = "assets/african_head.obj"
     mesh = load_obj(objfile)
     @time draw(mesh, img)
@@ -90,10 +91,10 @@ function test3()
     return
 end
 
-
 function main()
     #test1()
     #test2()
+    #test_triangle()
     test3()
     return
 end

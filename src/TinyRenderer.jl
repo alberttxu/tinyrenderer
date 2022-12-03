@@ -23,7 +23,7 @@ white = RGB(1,1,1)
 
 
 function line(x0::Int, y0::Int, x1::Int, y1::Int,
-             img::M, color::RGB) where M <: AbstractMatrix{RGB}
+              img::AbstractMatrix{RGB{N0f8}}, color::RGB{N0f8})
     if x0 == x1
         ymin, ymax = minmax(y0, y1)
         for y in ymin:ymax
@@ -50,8 +50,7 @@ function line(x0::Int, y0::Int, x1::Int, y1::Int,
     end
 end
 
-function line(v1::Vec2{Int}, v2::Vec2{Int},
-             img::M, color::RGB) where M <: AbstractMatrix{RGB}
+function line(v1::Vec2{Int}, v2::Vec2{Int}, img::Matrix{RGB{N0f8}}, color::RGB{N0f8})
     line(v1.x, v1.y, v2.x, v2.y, img, color)
 end
 
@@ -79,16 +78,19 @@ function isInsideTriangle(A, rhs) :: Bool
 end
 
 function triangle(v1::Vec2{Int}, v2::Vec2{Int}, v3::Vec2{Int},
-        img::M, color::RGB) where M <: AbstractMatrix{RGB}
+        img::Matrix{RGB{N0f8}}, color::RGB{N0f8})
     # bounding box bottom-left and upper-right corners
-    xmin, ymin = min.(v1, v2, v3)
-    xmax, ymax = max.(v1, v2, v3)
+    xmin = min(v1.x, v2.x, v3.x)
+    xmax = max(v1.x, v2.x, v3.x)
+    ymin = min(v1.y, v2.y, v3.y)
+    ymax = max(v1.y, v2.y, v3.y)
 
     A = SA_F64[v1.x  v2.x  v3.x;
                v1.y  v2.y  v3.y;
                1     1     1]
 
-    if rank(A) < 3
+    tol = 1e-6
+    if det(A) < tol
         line(v1, v2, img, color)
         line(v2, v3, img, color)
         line(v3, v1, img, color)
@@ -105,7 +107,7 @@ function triangle(v1::Vec2{Int}, v2::Vec2{Int}, v3::Vec2{Int},
     end
 end
 
-function triangle(tri::Triangle2D, img::M, color::RGB) where M <: AbstractMatrix{RGB}
+function triangle(tri::Triangle2D, img::Matrix{RGB{N0f8}}, color::RGB{N0f8})
     triangle(tri.v1, tri.v2, tri.v3, img, color)
 end
 
