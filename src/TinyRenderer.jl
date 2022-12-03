@@ -5,6 +5,9 @@ export line, triangle
 export load_obj
 export Vec2, Vec3, Mesh, Triangle2D
 
+using LinearAlgebra
+using StaticArrays
+
 include("geometry.jl")
 using .Geometry
 
@@ -22,7 +25,8 @@ white = RGB(1,1,1)
 function line(x0::Int, y0::Int, x1::Int, y1::Int,
              img::M, color::RGB) where M <: AbstractMatrix{RGB}
     if x0 == x1
-        for y in minmax(y0, y1)
+        ymin, ymax = minmax(y0, y1)
+        for y in ymin:ymax
             img[y,x0] = color
         end
         return
@@ -53,8 +57,7 @@ end
 
 
 #= works but could be better
-function isInsideTriangle(tri::Triangle2D, query::Vec2{Int}) :: Bool
-    v1, v2, v3 = tri.v1, tri.v2, tri.v3
+function isInsideTriangle(v1::Vec2{Int}, v2::Vec2{Int}, v3::Vec2{Int}, query::Vec2{Int}) :: Bool
     basis1 = [v2-v1 v3-v1]
     solution1 = basis1 \ (query - v1)
     if any(component -> component < 0, solution1)
@@ -69,17 +72,10 @@ function isInsideTriangle(tri::Triangle2D, query::Vec2{Int}) :: Bool
 end
 =#
 
-# convex combination, aka barycentric coordinates
-function isInsideTriangle(v1::Vec2{Int}, v2::Vec2{Int}, v3::Vec2{Int}, query::Vec2{Int}) :: Bool
-    A = [v1 v2 v3;
-         1  1  1]
-    b = [query; 1]
-    solution = A \ b
-    return all(el -> el > 0, solution)
-end
-
-function isInsideTriangle(tri::Triangle2D, query::Vec2{Int}) :: Bool
-    return isInsideTriangle(tri.v1, tri.v2, tri.v3, query)
+# check barycentric coordinates
+function isInsideTriangle(A, rhs) :: Bool
+    barycentric_coords = A \ rhs
+    return all(barycentric_coords .>= 0)
 end
 
 function triangle(v1::Vec2{Int}, v2::Vec2{Int}, v3::Vec2{Int},
@@ -88,14 +84,25 @@ function triangle(v1::Vec2{Int}, v2::Vec2{Int}, v3::Vec2{Int},
     xmin, ymin = min.(v1, v2, v3)
     xmax, ymax = max.(v1, v2, v3)
 
+    A = SA_F64[v1.x  v2.x  v3.x;
+               v1.y  v2.y  v3.y;
+               1     1     1]
+
+    if rank(A) < 3
+        line(v1, v2, img, color)
+        line(v2, v3, img, color)
+        line(v3, v1, img, color)
+        return
+    end
+
     for x in xmin:xmax
         for y in ymin:ymax
-            if isInsideTriangle(v1, v2, v3, Vec2(x,y))
+            rhs = SA_F64[x, y, 1]
+            if isInsideTriangle(A, rhs)
                 img[y,x] = color
             end
         end
     end
-
 end
 
 function triangle(tri::Triangle2D, img::M, color::RGB) where M <: AbstractMatrix{RGB}
