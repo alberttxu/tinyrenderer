@@ -55,30 +55,20 @@ function line(v1::Vec2{Int}, v2::Vec2{Int}, img::Matrix{RGB{N0f8}}, color::RGB{N
 end
 
 
-#= works but could be better
-function isInsideTriangle(v1::Vec2{Int}, v2::Vec2{Int}, v3::Vec2{Int}, query::Vec2{Int}) :: Bool
-    basis1 = [v2-v1 v3-v1]
-    solution1 = basis1 \ (query - v1)
-    if any(component -> component < 0, solution1)
-        return false
-    end
-    basis2 = [v1-v2 v3-v2]
-    solution2 = basis2 \ (query - v2)
-    if any(component -> component < 0, solution2)
-        return false
-    end
-    return true
-end
-=#
-
-# check barycentric coordinates
-function isInsideTriangle(A, rhs) :: Bool
-    barycentric_coords = A \ rhs
-    return all(barycentric_coords .>= 0)
+# for performance - default det allocates
+function det3x3(A) :: Float64
+    return (A[1,1] * A[2,2] * A[3,3]
+          + A[1,2] * A[2,3] * A[3,1]
+          + A[1,3] * A[2,1] * A[3,2]
+          - A[1,3] * A[2,2] * A[3,1]
+          - A[1,2] * A[2,1] * A[3,3]
+          - A[1,1] * A[2,3] * A[3,2])
 end
 
 function triangle(v1::Vec2{Int}, v2::Vec2{Int}, v3::Vec2{Int},
-        img::Matrix{RGB{N0f8}}, color::RGB{N0f8})
+                  img::Matrix{RGB{N0f8}}, color::RGB{N0f8},
+                  zbuffer::Matrix{Float64}, corner_zvals::Vector{Float64})
+
     # bounding box bottom-left and upper-right corners
     xmin = min(v1.x, v2.x, v3.x)
     xmax = max(v1.x, v2.x, v3.x)
@@ -90,25 +80,26 @@ function triangle(v1::Vec2{Int}, v2::Vec2{Int}, v3::Vec2{Int},
                1     1     1]
 
     tol = 1e-6
-    if det(A) < tol
-        line(v1, v2, img, color)
-        line(v2, v3, img, color)
-        line(v3, v1, img, color)
+    if det3x3(A) < tol
         return
     end
 
     for x in xmin:xmax
         for y in ymin:ymax
-            rhs = SA_F64[x, y, 1]
-            if isInsideTriangle(A, rhs)
-                img[y,x] = color
+            barycentric_coords = A \ SA_F64[x, y, 1]
+            isinside = all(barycentric_coords .>= 0)
+            if !isinside
+                continue
             end
+
+            pixel_z = dot(corner_zvals, barycentric_coords)
+            if zbuffer[y,x] > pixel_z
+                continue
+            end
+            img[y,x] = color
+            zbuffer[y,x] = pixel_z
         end
     end
-end
-
-function triangle(tri::Triangle2D, img::Matrix{RGB{N0f8}}, color::RGB{N0f8})
-    triangle(tri.v1, tri.v2, tri.v3, img, color)
 end
 
 end # module TinyRenderer

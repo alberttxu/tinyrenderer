@@ -59,6 +59,9 @@ end
 
 function draw(mesh, img)
     light_direction = [0, 0, -1]
+    zbuffer = similar(img, Float64)
+    fill!(zbuffer, -Inf)
+
     for (i, face) in enumerate(mesh.faces)
         v1 = mesh.vertices[face[1]]
         v2 = mesh.vertices[face[2]]
@@ -73,7 +76,8 @@ function draw(mesh, img)
             continue
         end
         color = RGB{N0f8}(intensity, intensity, intensity)
-        triangle(corner1, corner2, corner3, img, color)
+        corner_zvals = Float64[v1.z, v2.z, v3.z]
+        triangle(corner1, corner2, corner3, img, color, zbuffer, corner_zvals)
     end
 end
 
@@ -83,7 +87,9 @@ function test_triangle()
     height = 200
     img = zeros(RGB{N0f8}, height, width)
     #println(typeof(img))
-    triangle(Vec2(180,50), Vec2(150,1), Vec2(70,180), img, white)
+    zbuffer = similar(img, Float64)
+    corner_zvals = [1.0,0,0]
+    @time triangle(Vec2(180,50), Vec2(150,1), Vec2(70,180), img, white, zbuffer, corner_zvals)
 end
 
 function test3()
