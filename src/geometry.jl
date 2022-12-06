@@ -1,6 +1,6 @@
 module Geometry
 
-export Vec2, Vec3, Mesh, Triangle2D
+export Vec2, Vec3, Face, Mesh, Triangle2D
 
 struct Vec2{T<:Real} <: AbstractVector{T}
     x::T
@@ -51,9 +51,15 @@ function Vec3(v::T) where T <: AbstractVector{<:Real}
 end
 
 
+struct Face
+    vert_idxs::Vec3{Int}
+    texture_idxs::Vec3{Int}
+end
+
 struct Mesh
     vertices::Vector{Vec3{Float64}}
-    faces::Vector{Vec3{Int}}
+    textures::Vector{Vec2{Float64}}
+    faces::Vector{Face}
 end
 
 

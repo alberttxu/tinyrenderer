@@ -6,7 +6,7 @@ using LinearAlgebra
 using TinyRenderer
 
 # 3rd party
-using Images
+using Images: load, save, RGB, N0f8
 #using ProfileView
 
 
@@ -25,12 +25,6 @@ function test1()
     return
 end
 
-
-function ortho2d(v::Vec3, img) :: Vec2{Int}
-    scale = 0.85
-    height, width = size(img)
-    return Vec2(@. round(Int, ((scale * @view v[1:2]) + 1) * (width,height) / 2))
-end
 
 function test2()
     width = 1000
@@ -57,31 +51,6 @@ function test2()
 end
 
 
-function draw(mesh, img)
-    light_direction = [0, 0, -1]
-    zbuffer = similar(img, Float64)
-    fill!(zbuffer, -Inf)
-
-    for (i, face) in enumerate(mesh.faces)
-        v1 = mesh.vertices[face[1]]
-        v2 = mesh.vertices[face[2]]
-        v3 = mesh.vertices[face[3]]
-        corner1 = ortho2d(v1, img)
-        corner2 = ortho2d(v2, img)
-        corner3 = ortho2d(v3, img)
-        normal = cross(v1 - v2, v3 - v1)
-        normal ./= norm(normal)
-        intensity = dot(normal, light_direction)
-        if intensity <= 0
-            continue
-        end
-        color = RGB{N0f8}(intensity, intensity, intensity)
-        corner_zvals = Float64[v1.z, v2.z, v3.z]
-        triangle(corner1, corner2, corner3, img, color, zbuffer, corner_zvals)
-    end
-end
-
-
 function test_triangle()
     width = 200
     height = 200
@@ -97,8 +66,10 @@ function test3()
     height = 1000
     img = zeros(RGB{N0f8}, height, width)
     objfile = "assets/african_head.obj"
+    texture_map = "assets/african_head_diffuse.tga"
+    texture = load(texture_map)
     mesh = load_obj(objfile)
-    @time draw(mesh, img)
+    @time draw(mesh, texture, img)
 
     reverse!(img, dims=1)
     save("output.png", img)

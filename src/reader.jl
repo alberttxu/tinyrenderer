@@ -2,11 +2,16 @@ module Reader
 
 export load_obj
 
-import ..Geometry: Vec3, Mesh
+using ..Geometry
+
 
 function load_obj(objfile)
     vertices = Vector{Vec3{Float64}}()
-    faces = Vector{Vec3{Int}}()
+    vert_idxs = Vector{Vec3{Int}}()
+    textures = Vector{Vec2{Float64}}()
+    texture_idxs = Vector{Vec3{Int}}()
+    faces = Vector{Face}()
+
     for line in eachline(objfile)
         #println(line)
         tokens = split(line)
@@ -18,16 +23,20 @@ function load_obj(objfile)
             y = parse(Float64, tokens[3])
             z = parse(Float64, tokens[4])
             push!(vertices, Vec3(x,y,z))
+        elseif tokens[1] == "vt"
+            u = parse(Float64, tokens[2])
+            v = parse(Float64, tokens[3])
+            push!(textures, Vec2(u,v))
         elseif tokens[1] == "f"
-            v1 = parse(Int, split(tokens[2], "/")[1])
-            v2 = parse(Int, split(tokens[3], "/")[1])
-            v3 = parse(Int, split(tokens[4], "/")[1])
-            push!(faces, Vec3(v1,v2,v3))
+            vert_idxs = [parse(Int, split(tokens[i], "/")[1]) for i in 2:4]
+            texture_idxs = [parse(Int, split(tokens[i], "/")[2]) for i in 2:4]
+            push!(faces, Face(Vec3(vert_idxs...), Vec3(texture_idxs...)))
         end
     end
+
     println("parsed $(length(vertices)) vertices, $(length(faces)) faces \
             from $objfile")
-    return Mesh(vertices, faces)
+    return Mesh(vertices, textures, faces)
 end
 
 end # module Reader
